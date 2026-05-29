@@ -33,8 +33,9 @@ function LoginForm() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
+  try {
     const res = await fetch("http://localhost:5000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -42,8 +43,21 @@ function LoginForm() {
     });
 
     const data = await res.json();
+
+    // SAVE USER DATA
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
     alert(data.message);
-  };
+
+    console.log("Logged in user:", data.user);
+    console.log("Token:", data.token);
+
+  } catch (error) {
+    console.error(error);
+    alert("Login failed");
+  }
+};
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
