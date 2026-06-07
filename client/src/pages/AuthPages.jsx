@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthPages() {
   const [isLogin, setIsLogin] = useState(true);
@@ -29,6 +30,7 @@ export default function AuthPages() {
 }
 
 function LoginForm() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -44,14 +46,17 @@ function LoginForm() {
 
     const data = await res.json();
 
-    // SAVE USER DATA
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
 
     alert(data.message);
 
-    console.log("Logged in user:", data.user);
-    console.log("Token:", data.token);
+    // Redirect user according to role
+    if (data.user.role === "fundi") {
+      navigate("/fundi-dashboard");
+    } else {
+      navigate("/client-dashboard");
+    }
 
   } catch (error) {
     console.error(error);
