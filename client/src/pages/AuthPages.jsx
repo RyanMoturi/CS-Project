@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+/* 🔥 CENTRAL API URL (IMPORTANT FIX) */
+const API_URL = "http://192.168.100.38:5000";
+
 export default function AuthPages() {
   const [isLogin, setIsLogin] = useState(true);
 
@@ -11,13 +14,18 @@ export default function AuthPages() {
         <div className="flex mb-6">
           <button
             onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 rounded-l-xl font-semibold ${isLogin ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            className={`flex-1 py-2 rounded-l-xl font-semibold ${
+              isLogin ? "bg-blue-600 text-white" : "bg-gray-200"
+            }`}
           >
             Login
           </button>
+
           <button
             onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 rounded-r-xl font-semibold ${!isLogin ? "bg-green-600 text-white" : "bg-gray-200"}`}
+            className={`flex-1 py-2 rounded-r-xl font-semibold ${
+              !isLogin ? "bg-green-600 text-white" : "bg-gray-200"
+            }`}
           >
             Register
           </button>
@@ -29,40 +37,47 @@ export default function AuthPages() {
   );
 }
 
+/* =========================
+   LOGIN FORM
+========================= */
 function LoginForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:5000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+      if (!res.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
 
-    alert(data.message);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-    // Redirect user according to role
-    if (data.user.role === "fundi") {
-      navigate("/fundi-dashboard");
-    } else {
-      navigate("/client-dashboard");
+      alert(data.message);
+
+      // Role-based redirect
+      if (data.user.role === "fundi") {
+        navigate("/fundi-dashboard");
+      } else {
+        navigate("/client-dashboard");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Login failed. Check backend connection.");
     }
-
-  } catch (error) {
-    console.error(error);
-    alert("Login failed");
-  }
-};
+  };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
@@ -74,6 +89,7 @@ function LoginForm() {
         className="w-full p-2 border rounded"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
       />
 
       <input
@@ -82,6 +98,7 @@ function LoginForm() {
         className="w-full p-2 border rounded"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
 
       <button className="w-full bg-blue-600 text-white py-2 rounded">
@@ -91,6 +108,9 @@ function LoginForm() {
   );
 }
 
+/* =========================
+   REGISTER FORM
+========================= */
 function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -100,14 +120,31 @@ function RegisterForm() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:5000/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, role }),
-    });
+    try {
+      const res = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role }),
+      });
 
-    const data = await res.json();
-    alert(data.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      alert(data.message);
+
+      // Optional: auto-switch to login after register
+      setName("");
+      setEmail("");
+      setPassword("");
+      setRole("client");
+    } catch (error) {
+      console.error(error);
+      alert("Registration failed. Check backend connection.");
+    }
   };
 
   return (
@@ -120,6 +157,7 @@ function RegisterForm() {
         className="w-full p-2 border rounded"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        required
       />
 
       <input
@@ -128,6 +166,7 @@ function RegisterForm() {
         className="w-full p-2 border rounded"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
       />
 
       <input
@@ -136,9 +175,9 @@ function RegisterForm() {
         className="w-full p-2 border rounded"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
 
-      {/* Role selector */}
       <select
         className="w-full p-2 border rounded"
         value={role}
