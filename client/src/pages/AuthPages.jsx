@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* 🔥 CENTRAL API URL (IMPORTANT FIX) */
-const API_URL = "http://192.168.100.38:5000";
+const API_URL = "http://localhost:5000";
 
 export default function AuthPages() {
   const [isLogin, setIsLogin] = useState(true);
